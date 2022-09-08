@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shop_app/screens/cart_screen.dart';
-import 'package:shop_app/widgets/product_grid.dart';
 
+import '../screens/cart_screen.dart';
+import '../widgets/product_grid.dart';
 import '../providers/cart.dart';
 import '../widgets/badge.dart';
+import '../widgets/main_drawer.dart';
 
 enum FilterOptions {
-  Favorites,
-  All
+  favorites,
+  all
 }
 
 class ProductsOverviewScreen extends StatefulWidget {
@@ -32,7 +33,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
           PopupMenuButton(
             onSelected: (selectedValue) {
               setState(() {
-                if (selectedValue == FilterOptions.Favorites) {
+                if (selectedValue == FilterOptions.favorites) {
                   _showFavoritesOnly = true;
                 } else {
                   _showFavoritesOnly = false;
@@ -41,11 +42,11 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
             },
             itemBuilder: (_) => [
               const PopupMenuItem(
-                value: FilterOptions.Favorites,
+                value: FilterOptions.favorites,
                 child: Text('Only Favorites'),
               ),
               const PopupMenuItem(
-                value: FilterOptions.All,
+                value: FilterOptions.all,
                 child: Text('Show All'),
               ),
             ],
@@ -65,6 +66,9 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
             ),
           )
         ],
+      ),
+      drawer: const Drawer(
+        child: MainDrawer(),
       ),
       body: ProductGrid(_showFavoritesOnly)
     );

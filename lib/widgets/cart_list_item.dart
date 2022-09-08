@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../models/cart_item.dart';
+import '../providers/cart.dart';
 
 class CartListItem extends StatelessWidget {
-  // final CartItem? cartItem;
 
   final String id;
+  final String productId;
   final double price;
   final int quantity;
   final String title;
 
   const CartListItem({
     required this.id,
+    required this.productId,
     required this.price,
     required this.quantity,
     required this.title,
@@ -34,9 +36,26 @@ class CartListItem extends StatelessWidget {
         ),
       ),
       direction: DismissDirection.endToStart,
-      onDismissed: (direction) { // direction gives you how to handle
-
+      onDismissed: (direction) { // direction to handle different directions options
+        Provider.of<Cart>(context, listen: false).removeItem(productId);
       },
+      confirmDismiss: (direction) => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Are you sure?'),
+          content: const Text('Do you want to remove the item from the card?'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('No')
+            ),
+            TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Yes')
+            ),
+          ],
+        )
+      ),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 4.0),
         child: Padding(

@@ -19,6 +19,19 @@ class ProductItem extends StatelessWidget {
     final product = Provider.of<Product>(context, listen: false);
     final cartProvider = Provider.of<Cart>(context, listen: false);
 
+    void _addItemToCart(BuildContext context) {
+      cartProvider.addItem(product.id, product.price, product.title);
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Item added  to cart!'),
+            action: SnackBarAction(
+                label: 'UNDO',
+                onPressed: () => cartProvider.removeAddedItem(id),
+            ),
+          ));
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.0),
       child: GridTile(
@@ -39,7 +52,7 @@ class ProductItem extends StatelessWidget {
           ),
           trailing: IconButton(
             icon: const Icon(Icons.shopping_cart),
-            onPressed: () => cartProvider.addItem(product.id, product.price, product.title),
+            onPressed: () => _addItemToCart(context),
             color: Theme.of(context).colorScheme.secondary,
           ),
         ),

@@ -3,7 +3,7 @@ import 'package:shop_app/models/cart_item.dart';
 
 class Cart with ChangeNotifier {
 
-  final Map<String, CartItem> _items = {};
+  Map<String, CartItem> _items = {};
 
   Map<String, CartItem> get items {
     return {..._items};
@@ -34,7 +34,30 @@ class Cart with ChangeNotifier {
   }
 
   void removeItem(String id) {
-    _items.removeWhere((key, item) => item.id == id);
+    _items.remove(id);
+    notifyListeners();
+  }
+
+  void removeAddedItem(String id) {
+    if (!_items.containsKey(id)) {
+      return;
+    }
+    if(_items[id]!.quantity > 1) { // item already in cart - reduce quantity
+      _items.update(id, (existingItem) => CartItem(
+          id: existingItem.id,
+          title: existingItem.title,
+          quantity: existingItem.quantity - 1,
+          price: existingItem.price)
+      );
+    } else { // item wasn't in card - remove it
+      _items.remove(id);
+    }
+    notifyListeners();
+  }
+
+  void clear() {
+    _items = {};
+    notifyListeners();
   }
 
 }
