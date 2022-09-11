@@ -27,6 +27,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     'imageUrl': '',
   };
   bool _isInit = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -80,16 +81,43 @@ class _EditProductScreenState extends State<EditProductScreen> {
     }
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     final isValid = _formKey.currentState?.validate();
     if (isValid != null && isValid) {
+      setState(() {
+        _isLoading = true;
+      });
       _formKey.currentState?.save();
       if (_product.id.isNotEmpty) { // editing
         Provider.of<ProductsProvider>(context, listen: false).updateProduct(_product.id, _product);
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.of(context).pop();
       } else { // new product
-        Provider.of<ProductsProvider>(context, listen: false).addProduct(_product);
+        try {
+          await Provider.of<ProductsProvider>(context, listen: false).addProduct(_product);
+        } catch (error) {
+          await showDialog<Null>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('An error occurred'),
+                content: const Text('Something went wrong!'),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Okay')
+                  )
+                ],
+              )
+          );
+        } finally {
+          setState(() {
+            _isLoading = false;
+          });
+          Navigator.of(context).pop();
+        }
       }
-      Navigator.of(context).pop();
     }
   }
 
@@ -105,7 +133,9 @@ class _EditProductScreenState extends State<EditProductScreen> {
           )
         ],
       ),
-      body: Form(
+      body: _isLoading ? const Center(
+        child: CircularProgressIndicator(),
+      ) : Form(
         key: _formKey,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -232,7 +262,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         textInputAction: TextInputAction.done,
                         focusNode: _imageFocusNode,
                         controller: _imageUrlController,
-                        onEditingComplete: _submitForm,
+                        onEditingComplete: _updateImageUrl,
                         onFieldSubmitted: (_) {
                           _submitForm();
                         },
