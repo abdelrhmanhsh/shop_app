@@ -11,6 +11,26 @@ class UserProductsScreen extends StatelessWidget {
 
   const UserProductsScreen({Key? key}) : super(key: key);
 
+  Future<void> _refreshProducts(BuildContext context) async {
+    try {
+      await Provider.of<ProductsProvider>(context, listen: false).fetchProducts();
+    } catch (error) {
+      await showDialog<Null>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('An error occurred'),
+            content: const Text('Something went wrong while trying to get data!'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Okay')
+              )
+            ],
+          )
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -27,20 +47,23 @@ class UserProductsScreen extends StatelessWidget {
         ],
       ),
       drawer: const MainDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: ListView.builder(
-          itemBuilder: (_, index) => Column(
-            children: [
-              UserProductItem(
+      body: RefreshIndicator(
+        onRefresh: () => _refreshProducts(context),
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: ListView.builder(
+            itemBuilder: (_, index) => Column(
+              children: [
+                UserProductItem(
                   id: productsData.items[index].id,
                   title: productsData.items[index].title,
-                  imageUrl: productsData.items[index].imageUrl
-              ),
-              const Divider()
-            ],
+                  imageUrl: productsData.items[index].imageUrl,
+                ),
+                const Divider()
+              ],
+            ),
+            itemCount: productsData.items.length,
           ),
-          itemCount: productsData.items.length,
         ),
       ),
     );

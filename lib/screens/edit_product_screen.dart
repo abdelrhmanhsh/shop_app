@@ -88,21 +88,16 @@ class _EditProductScreenState extends State<EditProductScreen> {
         _isLoading = true;
       });
       _formKey.currentState?.save();
-      if (_product.id.isNotEmpty) { // editing
-        Provider.of<ProductsProvider>(context, listen: false).updateProduct(_product.id, _product);
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pop();
-      } else { // new product
+      // editing
+      if (_product.id.isNotEmpty) {
         try {
-          await Provider.of<ProductsProvider>(context, listen: false).addProduct(_product);
+          await Provider.of<ProductsProvider>(context, listen: false).updateProduct(_product.id, _product);
         } catch (error) {
           await showDialog<Null>(
               context: context,
               builder: (context) => AlertDialog(
                 title: const Text('An error occurred'),
-                content: const Text('Something went wrong!'),
+                content: const Text('Something went wrong while editing the product!'),
                 actions: [
                   TextButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -111,13 +106,31 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 ],
               )
           );
-        } finally {
-          setState(() {
-            _isLoading = false;
-          });
-          Navigator.of(context).pop();
+        }
+        // new product
+      } else {
+        try {
+          await Provider.of<ProductsProvider>(context, listen: false).addProduct(_product);
+        } catch (error) {
+          await showDialog<Null>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('An error occurred'),
+                content: const Text('Something went wrong while saving the product!'),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Okay')
+                  )
+                ],
+              )
+          );
         }
       }
+      setState(() {
+        _isLoading = false;
+      });
+      Navigator.of(context).pop();
     }
   }
 

@@ -20,9 +20,18 @@ class UserProductItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    void _performDelete() {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    Future<void> _performDelete() async {
       Navigator.of(context).pop();
-      Provider.of<ProductsProvider>(context, listen: false).deleteProduct(id);
+      try {
+        await Provider.of<ProductsProvider>(context, listen: false).deleteProduct(id);
+      } catch (error) {
+        scaffoldMessenger.showSnackBar(
+            const SnackBar(
+              content: Text('Error while deleting item!'),
+            ));
+      }
     }
 
     return ListTile(

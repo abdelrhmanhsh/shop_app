@@ -18,18 +18,39 @@ class ProductItem extends StatelessWidget {
 
     final product = Provider.of<Product>(context, listen: false);
     final cartProvider = Provider.of<Cart>(context, listen: false);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     void _addItemToCart(BuildContext context) {
-      cartProvider.addItem(product.id, product.price, product.title);
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Item added  to cart!'),
-            action: SnackBarAction(
+      // item not in cart
+      if (!cartProvider.items.containsKey(id)) {
+        cartProvider.addItem(product.id, product.price, product.title);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Item added  to cart!'),
+              action: SnackBarAction(
                 label: 'UNDO',
                 onPressed: () => cartProvider.removeAddedItem(id),
-            ),
-          ));
+              ),
+            ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Item already in cart!'),
+            ));
+      }
+
+    }
+
+    Future<void> _toggleFavorite() async {
+      try {
+        await Provider.of<Product>(context, listen: false).toggleFavoriteStatus();
+      } catch (error) {
+        scaffoldMessenger.showSnackBar(
+            const SnackBar(
+              content: Text('Error while adding item to favorites!'),
+            ));
+      }
     }
 
     return ClipRRect(
@@ -42,7 +63,7 @@ class ProductItem extends StatelessWidget {
               icon: Icon(
                   product.isFavorite ? Icons.favorite : Icons.favorite_border
               ),
-              onPressed: () => product.toggleFavoriteStatus(),
+              onPressed: _toggleFavorite,
               color: Colors.deepOrange,
             ),
           ),

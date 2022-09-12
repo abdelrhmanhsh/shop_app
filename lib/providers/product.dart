@@ -1,4 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../models/http_exception.dart';
+import '../utils/private_constants.dart';
 
 class Product with ChangeNotifier {
   final String id;
@@ -17,8 +23,29 @@ class Product with ChangeNotifier {
     this.isFavorite = false
   });
 
-  void toggleFavoriteStatus() {
+  Future<void> toggleFavoriteStatus() async {
+
+    bool? favState = isFavorite;
     isFavorite = !isFavorite;
     notifyListeners();
+
+    final favProductsUrl = Uri.parse('${PrivateConstants.mainUrl}products/$id.json');
+
+    final response = await http.patch(
+        favProductsUrl,
+        body: json.encode({
+          'isFavorite': !favState,
+        })
+    );
+
+    if (response.statusCode >= 400) {
+      isFavorite = !isFavorite;
+      notifyListeners();
+      throw HttpException('Could not add item to favorites!');
+    }
+
+    favState = null;
+
   }
+
 }

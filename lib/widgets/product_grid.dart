@@ -29,7 +29,8 @@ class ProductGrid extends StatelessWidget {
             child: ProductItem(
                 id: products[index].id,
                 title: products[index].title,
-                imageUrl: products[index].imageUrl)
+                imageUrl: products[index].imageUrl
+            )
         )
     );
   }

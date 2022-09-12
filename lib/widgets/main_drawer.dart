@@ -11,20 +11,9 @@ class MainDrawer extends StatelessWidget {
     return Drawer(
       child: Column(
         children: [
-          Container(
-            height: 50,
-            width: double.infinity,
-            color: Theme.of(context).primaryColor,
-            alignment: Alignment.center,
-            child: const Text(
-              'Hello Friend!',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20
-              ),
-            ),
+          AppBar(
+            title: const Text('Hello Friend!'),
           ),
-          const Divider(),
           MainDrawerItem(icon: Icons.shop, label: 'Shop', handler: () => Navigator.of(context).pushReplacementNamed('/')),
           const Divider(),
           MainDrawerItem(icon: Icons.payment, label: 'Orders', handler: () => Navigator.of(context).pushReplacementNamed(OrdersScreen.routeName)),

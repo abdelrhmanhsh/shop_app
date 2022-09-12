@@ -15,14 +15,6 @@ class CartScreen extends StatelessWidget {
 
     final cart = Provider.of<Cart>(context);
 
-    void _orderNow() {
-      Provider.of<Orders>(context, listen: false).addOrder(
-          cart.items.values.toList(),
-          cart.totalAmount
-      );
-      cart.clear();
-    }
-
     return Scaffold(
         appBar: AppBar(
           title: const Text('Your Cart'),
@@ -49,15 +41,7 @@ class CartScreen extends StatelessWidget {
                         ),
                       backgroundColor: Theme.of(context).primaryColor,
                     ),
-                    TextButton(
-                        onPressed: _orderNow,
-                        child: Text(
-                          'ORDER NOW',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor
-                          ),
-                        )
-                    )
+                    OrderButton(cart: cart)
                   ],
                 ),
               ),
@@ -75,6 +59,54 @@ class CartScreen extends StatelessWidget {
                 )
             )
           ],
+        )
+    );
+  }
+}
+
+class OrderButton extends StatefulWidget {
+
+  final Cart cart;
+
+  const OrderButton({
+    required this.cart,
+    Key? key
+  }) : super(key: key);
+
+  @override
+  State<OrderButton> createState() => _OrderButtonState();
+}
+
+class _OrderButtonState extends State<OrderButton> {
+
+  bool _isLoading = false;
+
+  Future<void> _orderNow() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await Provider.of<Orders>(context, listen: false).addOrder(
+        widget.cart.items.values.toList(),
+        widget.cart.totalAmount
+    );
+    setState(() {
+      _isLoading = false;
+    });
+    widget.cart.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return TextButton(
+        onPressed: (widget.cart.itemCount <= 0 || _isLoading) ? null : _orderNow,
+        child: _isLoading ? const Center(
+          child: CircularProgressIndicator(),
+        ) : Text(
+          'ORDER NOW',
+          style: TextStyle(
+              color: Theme.of(context).primaryColor
+          ),
         )
     );
   }

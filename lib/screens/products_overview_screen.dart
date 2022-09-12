@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/products.dart';
 
 import '../screens/cart_screen.dart';
 import '../widgets/product_grid.dart';
@@ -22,6 +23,48 @@ class ProductsOverviewScreen extends StatefulWidget {
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
 
   bool _showFavoritesOnly = false;
+  bool _isInit = false;
+  bool _isLoading = false;
+
+  @override
+  void didChangeDependencies() {
+    if (!_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<ProductsProvider>(context).fetchProducts().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      }).catchError((error) {
+        return showDialog<Null>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('An error occurred'),
+              content: const Text('Something went wrong while trying to get data!'),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Okay')
+                )
+              ],
+            )
+        );
+      }).then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+
+      Provider.of<Cart>(context).fetchCart().catchError((error) {
+        print('error fetching cart items: $error');
+      });
+
+      _isInit = true;
+
+    }
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +73,19 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
       appBar: AppBar(
         title: const Text('My Shop'),
         actions: [
+          Consumer<Cart>(
+            builder: (_, cart, child) => Badge(
+              value: cart.itemCount.toString(),
+              child: child ?? IconButton(
+                onPressed: () => Navigator.of(context).pushNamed(CartScreen.routeName),
+                icon: const Icon(Icons.shopping_cart),
+              ),
+            ),
+            child: IconButton(
+              onPressed: () => Navigator.of(context).pushNamed(CartScreen.routeName),
+              icon: const Icon(Icons.shopping_cart),
+            ),
+          ),
           PopupMenuButton(
             onSelected: (selectedValue) {
               setState(() {
@@ -43,7 +99,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
             itemBuilder: (_) => [
               const PopupMenuItem(
                 value: FilterOptions.favorites,
-                child: Text('Only Favorites'),
+                child: Text('Favorites'),
               ),
               const PopupMenuItem(
                 value: FilterOptions.all,
@@ -51,26 +107,15 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
               ),
             ],
             icon: const Icon(Icons.more_vert),
-          ),
-          Consumer<Cart>(
-            builder: (_, cart, child) => Badge(
-              value: cart.itemCount.toString(),
-              child: child ?? IconButton(
-                onPressed: () => Navigator.of(context).pushNamed(CartScreen.routeName),
-                icon: const Icon(Icons.shopping_cart),
-              ),
-            ),
-            child: IconButton(
-              onPressed: () => Navigator.of(context).pushNamed(CartScreen.routeName),
-              icon: const Icon(Icons.shopping_cart),
-            ),
           )
         ],
       ),
       drawer: const Drawer(
         child: MainDrawer(),
       ),
-      body: ProductGrid(_showFavoritesOnly)
+      body: _isLoading ? const Center(
+        child: CircularProgressIndicator(),
+      ) : ProductGrid(_showFavoritesOnly)
     );
   }
 }
