@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/providers/cart.dart';
 
+import '../providers/auth.dart';
 import '../providers/product.dart';
 import '../screens/product_detail_screen.dart';
 
@@ -10,14 +11,22 @@ class ProductItem extends StatelessWidget {
   final String id;
   final String title;
   final String imageUrl;
+  final double price;
 
-  const ProductItem({required this.id, required this.title, required this.imageUrl, Key? key}) : super(key: key);
+  const ProductItem({
+    required this.id,
+    required this.title,
+    required this.imageUrl,
+    required this.price,
+    Key? key
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
 
     final product = Provider.of<Product>(context, listen: false);
     final cartProvider = Provider.of<Cart>(context, listen: false);
+    final authProvider = Provider.of<Auth>(context, listen: false);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     void _addItemToCart(BuildContext context) {
@@ -30,7 +39,7 @@ class ProductItem extends StatelessWidget {
               content: const Text('Item added  to cart!'),
               action: SnackBarAction(
                 label: 'UNDO',
-                onPressed: () => cartProvider.removeAddedItem(id),
+                onPressed: () => cartProvider.removeItem(id, title, price),
               ),
             ));
       } else {
@@ -44,7 +53,7 @@ class ProductItem extends StatelessWidget {
 
     Future<void> _toggleFavorite() async {
       try {
-        await Provider.of<Product>(context, listen: false).toggleFavoriteStatus();
+        await Provider.of<Product>(context, listen: false).toggleFavoriteStatus(authProvider.token ?? '', authProvider.userId ?? '');
       } catch (error) {
         scaffoldMessenger.showSnackBar(
             const SnackBar(

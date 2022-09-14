@@ -85,14 +85,32 @@ class _OrderButtonState extends State<OrderButton> {
     setState(() {
       _isLoading = true;
     });
-    await Provider.of<Orders>(context, listen: false).addOrder(
-        widget.cart.items.values.toList(),
-        widget.cart.totalAmount
-    );
+    try {
+      await Provider.of<Orders>(context, listen: false).addOrder(
+          widget.cart.items.values.toList(),
+          widget.cart.totalAmount
+      );
+      widget.cart.clear();
+    } catch (error) {
+      await showDialog<Null>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('An error occurred'),
+            content: const Text('Something went wrong while trying to place order!'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Okay')
+              )
+            ],
+          )
+      );
+    }
+
     setState(() {
       _isLoading = false;
     });
-    widget.cart.clear();
+
   }
 
   @override

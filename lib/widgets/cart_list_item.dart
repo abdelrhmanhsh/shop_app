@@ -23,8 +23,12 @@ class CartListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    void _increaseItemQuantity(String id, int quantity) {
+    void _increaseItemQuantity(int quantity) {
       Provider.of<Cart>(context, listen: false).increaseItemQuantity(id, quantity);
+    }
+
+    void _decreaseItemQuantity(int quantity) {
+      Provider.of<Cart>(context, listen: false).decreaseItemQuantity(id, quantity);
     }
 
     return Dismissible(
@@ -42,7 +46,7 @@ class CartListItem extends StatelessWidget {
       ),
       direction: DismissDirection.endToStart,
       onDismissed: (direction) { // direction to handle different directions options
-        Provider.of<Cart>(context, listen: false).removeItem(productId);
+        Provider.of<Cart>(context, listen: false).removeItem(productId, title, price);
       },
       confirmDismiss: (direction) => showDialog(
         context: context,
@@ -73,7 +77,7 @@ class CartListItem extends StatelessWidget {
                   padding: const EdgeInsets.all(6.0),
                   child: FittedBox(
                     child: Text(
-                      '\$$price',
+                      '\$${price.toStringAsFixed(2)}',
                       style: TextStyle(
                         color: Theme.of(context).primaryTextTheme.headline6?.color
                       ),
@@ -85,18 +89,18 @@ class CartListItem extends StatelessWidget {
                 title,
                 style: Theme.of(context).textTheme.headline6,
               ),
-              subtitle: Text('Total: ${price * quantity}'),
+              subtitle: Text('Total: ${(price * quantity).toStringAsFixed(2)}'),
               trailing: SizedBox(
                 width: 150,
                 child: Row(
                   children: [
                     TextButton(
-                        onPressed: () => _increaseItemQuantity(id, quantity),
+                        onPressed: () => _increaseItemQuantity(quantity),
                         child: const Icon(Icons.add)
                     ),
                     Text(quantity.toString()),
                     TextButton(
-                        onPressed: () => Provider.of<Cart>(context, listen: false).decreaseItemQuantity(id, quantity),
+                        onPressed: () => _decreaseItemQuantity(quantity),
                         child: const Icon(Icons.remove)
                     ),
                   ],

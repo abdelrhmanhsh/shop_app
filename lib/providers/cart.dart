@@ -10,9 +10,11 @@ import '../utils/private_constants.dart';
 
 class Cart with ChangeNotifier {
 
-  final cartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}');
+  final String? _authToken;
+  final String? _userId;
+  Map<String, CartItem> _items;
 
-  Map<String, CartItem> _items = {};
+  Cart(this._authToken, this._userId, this._items);
 
   Map<String, CartItem> get items {
     return {..._items};
@@ -32,6 +34,8 @@ class Cart with ChangeNotifier {
 
   Future<void> fetchCart() async {
 
+    final cartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId.json/?auth=$_authToken');
+
     try {
       final response = await http.get(cartUrl);
       final data = json.decode(response.body);
@@ -41,7 +45,12 @@ class Cart with ChangeNotifier {
       }
 
       data.forEach((id, data) {
-        _items.putIfAbsent(id, () => CartItem(id: data['id'], title: data['title'], quantity: data['quantity'], price: data['price']));
+        _items.putIfAbsent(id, () => CartItem(
+            id: data['id'],
+            title: data['title'],
+            quantity: data['quantity'],
+            price: data['price']
+        ));
       });
 
       notifyListeners();
@@ -54,21 +63,40 @@ class Cart with ChangeNotifier {
 
   Future<void> addItem(String id, double price, String title) async {
 
+    var cartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId.json/?auth=$_authToken');
+
     try {
 
       // item doesn't exist in cart
       if (!_items.containsKey(id)) {
 
-        await http.post(
+        final response = await http.post(
             cartUrl,
             body: json.encode({
-              'id': id,
+              'id': '',
               'title': title,
               'price': price,
               'quantity': 1
             })
         );
-        _items.putIfAbsent(id, () => CartItem(id: id, title: title, quantity: 1, price: price));
+
+        final id = json.decode(response.body)['name'];
+        cartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId/$id.json?auth=$_authToken');
+
+        await http.patch(
+            cartUrl,
+            body: json.encode({
+              'id': id,
+            })
+        );
+
+        _items.putIfAbsent(
+            id, () => CartItem(
+            id: id,
+            title: title,
+            quantity: 1,
+            price: price)
+        );
       }
 
       notifyListeners();
@@ -79,35 +107,10 @@ class Cart with ChangeNotifier {
 
   }
 
-  // Future<void> toggleFavoriteStatus() async {
-  //
-  //   bool? favState = isFavorite;
-  //   isFavorite = !isFavorite;
-  //   notifyListeners();
-  //
-  //   final favProductsUrl = Uri.parse('${PrivateConstants.mainUrl}products/$id.json');
-  //
-  //   final response = await http.patch(
-  //       favProductsUrl,
-  //       body: json.encode({
-  //         'isFavorite': !favState,
-  //       })
-  //   );
-  //
-  //   if (response.statusCode >= 400) {
-  //     isFavorite = !isFavorite;
-  //     notifyListeners();
-  //     throw HttpException('Could not add item to favorites!');
-  //   }
-  //
-  //   favState = null;
-  //
-  // }
-
   Future<void> increaseItemQuantity(String id, int quantity) async {
     // item exist in cart
 
-    // int? currQuantity = quantity;
+    print('cart item id $id');
     if (_items.containsKey(id)) {
       _items.update(
         id, (currentItem) =>
@@ -121,7 +124,7 @@ class Cart with ChangeNotifier {
     }
     notifyListeners();
 
-    final quantityCartUrl = Uri.parse('${PrivateConstants.mainUrl}cart/$id');
+    final quantityCartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId/$id.json?auth=$_authToken');
 
     final response = await http.patch(
         quantityCartUrl,
@@ -144,44 +147,68 @@ class Cart with ChangeNotifier {
         );
       }
       notifyListeners();
-      throw HttpException('Could not update item to quantity!');
+      throw HttpException('Could not update item quantity!');
     }
 
   }
 
-  void decreaseItemQuantity(String id, int quantity) {
+  Future<void> decreaseItemQuantity(String id, int quantity) async {
     // item exist in cart
-    if(_items[id]!.quantity > 1) {
-      _items.update(id, (existingItem) => CartItem(
-          id: existingItem.id,
-          title: existingItem.title,
-          quantity: existingItem.quantity - 1,
-          price: existingItem.price)
+
+    print('cart item id $id');
+    if (_items.containsKey(id)) {
+      _items.update(
+        id, (currentItem) =>
+          CartItem(
+              id: currentItem.id,
+              title: currentItem.title,
+              quantity: currentItem.quantity - 1,
+              price: currentItem.price
+          ),
       );
     }
     notifyListeners();
+
+    final quantityCartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId/$id.json?auth=$_authToken');
+
+    final response = await http.patch(
+        quantityCartUrl,
+        body: json.encode({
+          'quantity': quantity - 1,
+        })
+    );
+
+    // rollback changes
+    if (response.statusCode >= 400) {
+      if (_items.containsKey(id)) {
+        _items.update(
+          id, (currentItem) =>
+            CartItem(
+                id: currentItem.id,
+                title: currentItem.title,
+                quantity: currentItem.quantity + 1,
+                price: currentItem.price
+            ),
+        );
+      }
+      notifyListeners();
+      throw HttpException('Could not update item quantity!');
+    }
+
   }
 
-  void removeItem(String id) {
+  Future<void> removeItem(String id, String title, double price) async {
     _items.remove(id);
     notifyListeners();
-  }
 
-  void removeAddedItem(String id) {
-    if (!_items.containsKey(id)) {
-      return;
+    final deleteCartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId/$id.json?auth=$_authToken');
+    final response = await http.delete(deleteCartUrl);
+
+    if (response.statusCode >= 400) {
+      _items.putIfAbsent(id, () => CartItem(id: id, title: title, quantity: 1, price: price));
+      notifyListeners();
+      throw HttpException('Could not delete this item!');
     }
-    if(_items[id]!.quantity > 1) { // item already in cart - reduce quantity
-      _items.update(id, (existingItem) => CartItem(
-          id: existingItem.id,
-          title: existingItem.title,
-          quantity: existingItem.quantity - 1,
-          price: existingItem.price)
-      );
-    } else { // item wasn't in card - remove it
-      _items.remove(id);
-    }
-    notifyListeners();
   }
 
   void clear() {

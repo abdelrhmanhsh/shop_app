@@ -4,21 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/cart_item.dart';
+import '../models/http_exception.dart';
 import '../models/order_item.dart';
 import '../utils/constants.dart';
 import '../utils/private_constants.dart';
 
 class Orders extends ChangeNotifier {
 
-  final ordersUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.ordersEndPoint}');
+  final String? _authToken;
+  final String? _userId;
+  final List<OrderItem> _orders;
 
-  final List<OrderItem> _orders = [];
+  Orders(this._authToken, this._userId, this._orders);
 
   List<OrderItem> get orders {
     return [..._orders];
   }
 
   Future<void> fetchOrders() async {
+
+    _orders.clear();
+    final ordersUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.ordersEndPoint}/$_userId.json/?auth=$_authToken');
 
     try {
       final response = await http.get(ordersUrl);
@@ -53,6 +59,8 @@ class Orders extends ChangeNotifier {
 
   Future<void> addOrder(List<CartItem> cartProducts, double total) async {
 
+    final ordersUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.ordersEndPoint}/$_userId.json/?auth=$_authToken');
+
     try {
 
       final timestamp = DateTime.now();
@@ -76,6 +84,13 @@ class Orders extends ChangeNotifier {
           products: cartProducts,
           dateTime: timestamp,
       );
+
+      final deleteCartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId?auth=$_authToken');
+      await http.delete(deleteCartUrl);
+
+      if (response.statusCode >= 400) {
+        throw HttpException('Could not delete this item!');
+      }
 
       _orders.add(newOrder);
       notifyListeners();
