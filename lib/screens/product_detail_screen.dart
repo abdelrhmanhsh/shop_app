@@ -11,47 +11,55 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final productId = ModalRoute.of(context)?.settings.arguments as String;
-    final loadedProduct = Provider.of<ProductsProvider>(
-      context,
-      listen: false
-    ).findProductById(productId);
+    final loadedProduct = Provider.of<ProductsProvider>(context, listen: false)
+        .findProductById(productId);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loadedProduct.title),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SizedBox(
-              height: 300,
-              width: double.infinity,
-              child: Image.network(
-                loadedProduct.imageUrl,
-                fit: BoxFit.cover,
+      // appBar: AppBar(
+      //   title: Text(loadedProduct.title),
+      // ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(loadedProduct.title),
+              background: Hero(
+                tag: loadedProduct.id,
+                child: Image.network(
+                  loadedProduct.imageUrl,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-            const SizedBox(height: 10,),
+          ),
+          SliverList(
+              delegate: SliverChildListDelegate([
+            const SizedBox(
+              height: 10,
+            ),
             Text(
               '\$${loadedProduct.price}',
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: Colors.grey
-              ),
+              style: const TextStyle(fontSize: 16.0, color: Colors.grey),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 10,),
+            const SizedBox(
+              height: 10,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Text(
                 loadedProduct.description,
-                  style: const TextStyle(
-                    fontSize: 16.0,
-                  ),
+                style: const TextStyle(
+                  fontSize: 16.0,
+                ),
                 softWrap: true,
+                textAlign: TextAlign.center,
               ),
             ),
-          ],
-        ),
+          ]))
+        ],
       ),
     );
   }

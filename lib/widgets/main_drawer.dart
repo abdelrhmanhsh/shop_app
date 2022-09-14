@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/screens/orders_screen.dart';
 import 'package:shop_app/screens/user_products_screen.dart';
+import 'package:shop_app/utils/custom_route.dart';
 import '../providers/auth.dart';
 import './main_drawer_item.dart';
 
@@ -19,6 +20,8 @@ class MainDrawer extends StatelessWidget {
           MainDrawerItem(icon: Icons.shop, label: 'Shop', handler: () => Navigator.of(context).pushReplacementNamed('/')),
           const Divider(),
           MainDrawerItem(icon: Icons.payment, label: 'Orders', handler: () => Navigator.of(context).pushReplacementNamed(OrdersScreen.routeName)),
+          // MainDrawerItem(icon: Icons.payment, label: 'Orders',
+          //     handler: () => Navigator.of(context).pushReplacement(CustomRoute(builder: (context) => const OrdersScreen()))),
           const Divider(),
           MainDrawerItem(icon: Icons.edit, label: 'Manage Products', handler: () => Navigator.of(context).pushReplacementNamed(UserProductsScreen.routeName)),
           const Divider(),
