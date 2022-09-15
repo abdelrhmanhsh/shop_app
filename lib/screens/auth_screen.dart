@@ -108,7 +108,6 @@ class _AuthCardState extends State<AuthCard> with SingleTickerProviderStateMixin
   final _passwordController = TextEditingController();
 
   AnimationController? _animationController;
-  // Animation<Size>? _heightAnimation;
   Animation<double>? _opacityAnimation;
   Animation<Offset>? _slideAnimation;
 
@@ -120,16 +119,6 @@ class _AuthCardState extends State<AuthCard> with SingleTickerProviderStateMixin
       vsync: this,
       duration: const Duration(milliseconds: 300)
     );
-    // _heightAnimation = Tween<Size>(
-    //     begin: const Size(double.infinity, 310),
-    //     end: const Size(double.infinity, 370)
-    // ).animate(
-    //     CurvedAnimation(
-    //         parent: _animationController!,
-    //         curve: Curves.fastOutSlowIn
-    //     )
-    // );
-    // _heightAnimation?.addListener(() => setState(() {}));
     _opacityAnimation = Tween(begin: 0.0, end: 1.0)
         .animate(
         CurvedAnimation(
@@ -239,7 +228,6 @@ class _AuthCardState extends State<AuthCard> with SingleTickerProviderStateMixin
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeIn,
         height: _authMode == AuthMode.signup ? 370 : 310,
-        // height: _heightAnimation!.value.height,
         constraints: BoxConstraints(minHeight: _authMode == AuthMode.signup ? 370 : 310),
         width: deviceSize.width * 0.75,
         padding: const EdgeInsets.all(16.0),

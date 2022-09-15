@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shop_app/providers/products_provider.dart';
 
+import '../providers/auth.dart';
 import '../screens/cart_screen.dart';
 import '../widgets/product_grid.dart';
 import '../providers/cart.dart';
@@ -106,6 +107,13 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
               const PopupMenuItem(
                 value: FilterOptions.all,
                 child: Text('Show All'),
+              ),
+              PopupMenuItem(
+                onTap: () {
+                  Navigator.of(context).pushReplacementNamed('/');
+                  Provider.of<Auth>(context, listen: false).logout();
+                  },
+                child: const Text('Logout'),
               ),
             ],
             icon: const Icon(Icons.more_vert),

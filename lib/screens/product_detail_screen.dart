@@ -15,16 +15,27 @@ class ProductDetailScreen extends StatelessWidget {
         .findProductById(productId);
 
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text(loadedProduct.title),
-      // ),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(loadedProduct.title),
+              title: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  bottomLeft: Radius.circular(8.0),
+                ),
+                child: Container(
+                    color: Colors.black26,
+                    width: 250,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5
+                    ),
+                    child: Text(loadedProduct.title)
+                ),
+              ),
               background: Hero(
                 tag: loadedProduct.id,
                 child: Image.network(

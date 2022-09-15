@@ -138,6 +138,7 @@ class ProductsProvider with ChangeNotifier {
       );
 
       _items.add(newProduct);
+      _ownerItems.add(newProduct);
       notifyListeners();
 
     } catch(error) {
@@ -149,6 +150,7 @@ class ProductsProvider with ChangeNotifier {
   Future<void> updateProduct(String id, Product product) async {
     final editProductsUrl = Uri.parse('${PrivateConstants.mainUrl}products/$id.json?auth=$_authToken');
     final productIndex = _items.indexWhere((product) => product.id == id);
+    final ownerProductIndex = _ownerItems.indexWhere((product) => product.id == id);
     try {
       await http.patch(
           editProductsUrl,
@@ -164,6 +166,7 @@ class ProductsProvider with ChangeNotifier {
         }
       });
       _items[productIndex] = product;
+      _ownerItems[ownerProductIndex] = product;
       notifyListeners();
 
     } catch (error) {
@@ -175,14 +178,17 @@ class ProductsProvider with ChangeNotifier {
 
     final deleteProductsUrl = Uri.parse('${PrivateConstants.mainUrl}products/$id.json?auth=$_authToken');
     final existingProductIndex = _items.indexWhere((product) => product.id == id);
+    final ownerExistingProductIndex = _ownerItems.indexWhere((product) => product.id == id);
     Product? existingProduct = _items.firstWhere((product) => product.id == id);
 
     _items.removeAt(existingProductIndex);
+    _ownerItems.removeAt(ownerExistingProductIndex);
     notifyListeners();
 
     final response = await http.delete(deleteProductsUrl);
     if (response.statusCode >= 400) {
       _items.insert(existingProductIndex, existingProduct);
+      _ownerItems.insert(ownerExistingProductIndex, existingProduct);
       notifyListeners();
       throw HttpException('Could not delete this item!');
     }

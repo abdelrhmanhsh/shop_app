@@ -85,7 +85,7 @@ class Orders extends ChangeNotifier {
           dateTime: timestamp,
       );
 
-      final deleteCartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId?auth=$_authToken');
+      final deleteCartUrl = Uri.parse('${PrivateConstants.mainUrl}${Constants.cartEndPoint}/$_userId.json?auth=$_authToken');
       await http.delete(deleteCartUrl);
 
       if (response.statusCode >= 400) {
