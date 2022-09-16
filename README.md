@@ -8,7 +8,7 @@ Flutter Project using Firebase as backend
 
 <h3>Technologies Used:</h3>
 <ul>
-  <li>Provider</li>
+  <li>Provider State Management</li>
   <li>Firebase Realtime DB & Authentication</li>
   <li>Coroutines</li>
   <li>Shared preferences</li>
